@@ -31,14 +31,14 @@ faces = ((0, 1, 2, 3), # Индексы вершин граней куба
          (4, 5, 1, 0),
          (1, 5, 7, 2),
          (4, 0, 3, 6))
-
+#позиция источника света0
 x_clr0 = R
-y_clr0 = 0
+y_clr0 = h
 z_clr0 = 2*h
-
-x_clr1 = -R
+#позиция источника света1
+x_clr1 = -3*R
 y_clr1 = 0
-z_clr1 = -2*h
+z_clr1 = -0.25*h
 
 mtClr0 = [0.233, 0.727811, 0.633, 0] # Цвет материала
 light_position0L = [x_clr0, y_clr0, z_clr0, 0] # Позиция источника света0
@@ -100,7 +100,7 @@ def on_draw():
     glRotatef(n_rot[0], 1, 0, 0)
     glRotatef(n_rot[1], 0, 1, 0)
     glRotatef(n_rot[2], 0, 0, 1)
-    hexagonalPrism()
+    hexagonalPrismNormalize()
     #2,3 пункты
     if (is_working[1] == 1):
         ShowNormTops()
@@ -146,7 +146,7 @@ def on_key_press(ch, modifiers):
         else:
             clock.unschedule(rotate4)
             is_working[2] = 0
-
+    
 
 
 
@@ -161,36 +161,36 @@ def rotate13(dt):
     global n_rot
     n_rot[1] = (n_rot[1] + dt * np.random.uniform(20,60)) % 360
 
-def hexagonalPrism():
-    glEnable(GL_NORMALIZE)
-    glEnable(GL_CULL_FACE)
-    glCullFace(GL_BACK)
-    glFrontFace(GL_CCW)
-    #Рисование боковых граней
-    glBegin(GL_QUADS)
-    for i1 in range(6):
-        i2 = (i1 + 1) % 6
-        glVertex3f(x[i1], 0.0, y[i1])
-        glVertex3f(x[i1], h, y[i1])
-        glVertex3f(x[i2], h, y[i2])
-        glVertex3f(x[i2], 0.0, y[i2])
-    glEnd()
-
-
-    #рисование нижней грани
-    glColor4f( 1, 1, 1, 1 )
-    glCullFace(MODE)
-    glFrontFace(GL_CCW)
-    glBegin(GL_POLYGON)
-    for i in range(6):
-        glVertex3f(x[i], 0.0, y[i])
-    glEnd()
-    glFrontFace(GL_CW)
-    # рисование верхней грани
-    glBegin(GL_POLYGON)
-    for i in range(6):
-        glVertex3f(x[i], h, y[i])
-    glEnd()
+# def hexagonalPrism():
+#     glEnable(GL_NORMALIZE)
+#     glEnable(GL_CULL_FACE)
+#     glCullFace(GL_BACK)
+#     glFrontFace(GL_CCW)
+#     #Рисование боковых граней
+#     glBegin(GL_QUADS)
+#     for i1 in range(6):
+#         i2 = (i1 + 1) % 6
+#         glVertex3f(x[i1], 0.0, y[i1])
+#         glVertex3f(x[i1], h, y[i1])
+#         glVertex3f(x[i2], h, y[i2])
+#         glVertex3f(x[i2], 0.0, y[i2])
+#     glEnd()
+#
+#
+#     #рисование нижней грани
+#     glColor4f( 1, 1, 1, 1 )
+#     glCullFace(MODE)
+#     glFrontFace(GL_CCW)
+#     glBegin(GL_POLYGON)
+#     for i in range(6):
+#         glVertex3f(x[i], 0.0, y[i])
+#     glEnd()
+#     glFrontFace(GL_CW)
+#     # рисование верхней грани
+#     glBegin(GL_POLYGON)
+#     for i in range(6):
+#         glVertex3f(x[i], h, y[i])
+#     glEnd()
 
 def Norm(a,b):
     n = np.cross(a, b) # Векторное произведение
@@ -232,12 +232,59 @@ def ShowNormTops():
             XY = points[j-1] - points[j]
             XZ = points[(j+1)%4] - points[j]
             norma = Norm(XZ, XY)
-
             glVertex3f(points[j][0], points[j][1], points[j][2])
             glVertex3f(norma[0], norma[1], norma[2])
+    for i in range(6):
+        #нижняя грань
+        glVertex3f(x[i], 0, y[i])
+        glVertex3f(x[i], -h, y[i])
+        #верхняя грань
+        glVertex3f(x[i], h, y[i])
+        glVertex3f(x[i], 2*h, y[i])
+    glEnd()
+
+def hexagonalPrismNormalize():
+    glEnable(GL_NORMALIZE)
+    glEnable(GL_CULL_FACE)
+    glCullFace(GL_BACK)
+    glFrontFace(GL_CCW)
+    #Рисование боковых граней
+    glBegin(GL_QUADS)
+    for i1 in range(6):
+        i2 = (i1 + 1) % 6
+        A = np.array([x[i1], 0.0, y[i1]])
+        B = np.array([x[i1], h, y[i1]])
+        C = np.array([x[i2], h, y[i2]])
+        D = np.array([x[i2], 0.0, y[i2]])
+        points = [A, B, C, D]
+        for j in range(4):
+            XY = points[j - 1] - points[j]
+            XZ = points[(j + 1) % 4] - points[j]
+            norma = Norm(XZ, XY)
+            glNormal3f(norma[0], norma[1], norma[2])
+            glVertex3f(points[j][0],points[j][1],points[j][2])
+    glEnd()
+
+
+    #рисование нижней грани
+    glColor4f( 1, 1, 1, 1 )
+    glCullFace(MODE)
+    glFrontFace(GL_CCW)
+    glBegin(GL_POLYGON)
+    for i in range(6):
+        glNormal3f(0, -h, 0)
+        glVertex3f(x[i], 0.0, y[i])
+    glEnd()
+    glFrontFace(GL_CW)
+    # рисование верхней грани
+    glBegin(GL_POLYGON)
+    for i in range(6):
+        glNormal3f(0, h, 0)
+        glVertex3f(x[i], h, y[i])
     glEnd()
 
 def cube_draw():
+    glCullFace(GL_BACK)
     for face in faces:
         v4 = ()
         for v in face:
