@@ -77,12 +77,12 @@ def on_draw():
     glPushMatrix()
     glDisable(GL_LIGHTING)
     # Движение первого куба
-    glTranslatef(light_position0L[0], light_position0L[1], light_position0L[2])
+    glTranslatef(light_position0[0], light_position0[1], light_position0[2])
     glColor3f(0, 0.5, 0)
     cube_draw()
     # Движение второго куба
     glPopMatrix()
-    glTranslatef(light_position1L[0], light_position1L[1], light_position1L[2])
+    glTranslatef(light_position1[0], light_position1[1], light_position1[2])
     glColor3f(0.75, 0, 0)
     cube_draw()
     glPopMatrix()
@@ -146,7 +146,21 @@ def on_key_press(ch, modifiers):
         else:
             clock.unschedule(rotate4)
             is_working[2] = 0
+    #5 пункт
+    if ch == key._4:
+        if (is_working[3] == 0):
+            clock.schedule_interval(rotate5, 0.08)
+            is_working[3] = 1
+        else:
+            clock.unschedule(rotate4)
+            is_working[3] = 0
     
+    elif ch == key.W:
+        if(is_working[11] == 0):
+            glMaterialfv(GL_FRONT, GL_DIFFUSE, mtClr)
+            is_working[11] = 1
+        else:
+            is_working[11] = 0
 
 
 
@@ -156,6 +170,12 @@ def rotate4(dt):
     n_rot[0] = (n_rot[0] + dt * np.random.uniform(20,60)) % 360
     n_rot[1] = (n_rot[1] + dt * np.random.uniform(20,60)) % 360
     n_rot[2] = (n_rot[2] + dt * np.random.uniform(20,60)) % 360
+
+def rotate5(dt):
+    global light_position1
+    light_position1[0] = light_position1[0] + (-1)**np.random.randint(0,2)*np.random.uniform(0,20)
+    light_position1[1] = light_position1[1] + (-1)**np.random.randint(0,2)*np.random.uniform(0,20)
+    light_position1[2] = light_position1[2] + (-1)**np.random.randint(0,2)*np.random.uniform(0,20)
 
 def rotate13(dt):
     global n_rot
