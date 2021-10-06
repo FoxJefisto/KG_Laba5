@@ -1,29 +1,60 @@
+from numpy.random import random
 from pyglet.gl import *
 from pyglet.window import Window, key
 from pyglet import app, graphics, clock
 import numpy as np
 
-w = width = height = 600 # Размер окна вывода
-n_rot = 0
+w = width = height = 800 # Размер окна вывода
+n_rot = [0] * 3
 is_working = [0]*13
 MODE = GL_BACK;
 rot_x = 20 # Углы поворота вокруг осей X, Y и Z
 rot_y = 45
 R = 200
 h = 400
+p = 20
 x = (R, 0.0, -R, -R, 0.0, R)
 y = (R, 1.5 * R, R, -R, -1.5 * R, -R)
 
-#
+verts = ((p, p, -p), # Координаты вершин куба
+         (p, p, -p),
+         (-p, p, -p),
+         (-p, -p, -p),
+         (p, -p, p),
+         (p, p, p),
+         (-p, -p, p),
+         (-p, p, p))
+
+faces = ((0, 1, 2, 3), # Индексы вершин граней куба
+         (3, 2, 7, 6),
+         (6, 7, 5, 4),
+         (4, 5, 1, 0),
+         (1, 5, 7, 2),
+         (4, 0, 3, 6))
+
+x_clr0 = R
+y_clr0 = 0
+z_clr0 = 2*h
+
+x_clr1 = -R
+y_clr1 = 0
+z_clr1 = -2*h
+
 mtClr0 = [0.233, 0.727811, 0.633, 0] # Цвет материала
-light_position0 = [0, 0, h, 0] # Позиция источника света
-lghtClr0 = [0.75, 0, 0, 0] # Цвет источника света
-mtClr = (gl.GLfloat * 4)()
-light_position = (gl.GLfloat * 4)()
-lghtClr = (gl.GLfloat * 4)()
+light_position0L = [x_clr0, y_clr0, z_clr0, 0] # Позиция источника света0
+light_position1L = [x_clr1, y_clr1, z_clr1, 0] # Позиция источника света1
+lghtClr0L = [0, 0.5, 0, 0] # Цвет источника света0
+lghtClr1L = [0.75, 0, 0, 0] # Цвет источника света1
+mtClr = (GLfloat * 4)()
+light_position0 = (GLfloat * 4)()
+light_position1 = (GLfloat * 4)()
+lghtClr0 = (GLfloat * 4)()
+lghtClr1 = (GLfloat * 4)()
 for k in range(4): mtClr[k] = mtClr0[k]
-for k in range(4): light_position[k] = light_position0[k]
-for k in range(4): lghtClr[k] = lghtClr0[k]
+for k in range(4): light_position0[k] = light_position0L[k]
+for k in range(4): lghtClr0[k] = lghtClr0L[k]
+for k in range(4): light_position1[k] = light_position1L[k]
+for k in range(4): lghtClr1[k] = lghtClr1L[k]
 #
 
 window = Window(visible = True, width = width, height = height, resizable = True)
@@ -40,15 +71,37 @@ def on_draw():
     glOrtho(-w, w, -w, w, -w, w)
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
-    glEnable(GL_LIGHTING)
-    glMaterialfv(gl.GL_FRONT, gl.GL_SPECULAR, mtClr)
-    glLightfv(gl.GL_LIGHT0, gl.GL_POSITION, light_position)
-    glLightfv(gl.GL_LIGHT0, gl.GL_SPECULAR, lghtClr)
-    glEnable(gl.GL_LIGHT0)  # Включаем в уравнение освещенности источник GL_LIGHT0
     glRotatef(rot_x, 1, 0, 0)
     glRotatef(rot_y, 0, 1, 0)
-    glRotatef(n_rot, 0, 1, 0)
+    glPushMatrix()
+    glPushMatrix()
+    glDisable(GL_LIGHTING)
+    # Движение первого куба
+    glTranslatef(light_position0L[0], light_position0L[1], light_position0L[2])
+    glColor3f(0, 0.5, 0)
+    cube_draw()
+    # Движение второго куба
+    glPopMatrix()
+    glTranslatef(light_position1L[0], light_position1L[1], light_position1L[2])
+    glColor3f(0.75, 0, 0)
+    cube_draw()
+    glPopMatrix()
+
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mtClr)
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position0)
+    glLightfv(GL_LIGHT0, GL_SPECULAR, lghtClr0)
+    glLightfv(GL_LIGHT1, GL_POSITION, light_position1)
+    glLightfv(GL_LIGHT1, GL_SPECULAR, lghtClr1)
+    glEnable(GL_LIGHTING)
+    glEnable(GL_LIGHT0)
+    glEnable(GL_LIGHT1)
+
+    #4 пункт
+    glRotatef(n_rot[0], 1, 0, 0)
+    glRotatef(n_rot[1], 0, 1, 0)
+    glRotatef(n_rot[2], 0, 0, 1)
     hexagonalPrism()
+    #2,3 пункты
     if (is_working[1] == 1):
         ShowNormTops()
     elif (is_working[1] == 2):
@@ -63,11 +116,12 @@ def on_key_press(ch, modifiers):
     global is_working
     if ch == key.E:
         if (not is_working[12]):
-            clock.schedule_interval(rotate, 0.0000001)
+            clock.schedule_interval(rotate13, 0.0000001)
             is_working[12] = 1
         else :
-            clock.unschedule(rotate)
+            clock.unschedule(rotate13)
             is_working[12] = 0
+    #1 пункт
     if ch == key._1:
         global MODE
         if(not is_working[0]):
@@ -76,6 +130,7 @@ def on_key_press(ch, modifiers):
         else:
             MODE = GL_BACK
             is_working[0] = 0
+    #2,3 пункты
     if ch == key._2:
         if(is_working[1] == 0):
             is_working[1] = 1
@@ -83,19 +138,35 @@ def on_key_press(ch, modifiers):
             is_working[1] = 2
         else:
             is_working[1] = 0
+    #4 пункт
+    if ch == key._3:
+        if(is_working[2] == 0):
+            clock.schedule_interval(rotate4, 0.00001)
+            is_working[2] = 1
+        else:
+            clock.unschedule(rotate4)
+            is_working[2] = 0
 
 
 
 
-def rotate(dt):
+
+def rotate4(dt):
     global n_rot
-    n_rot = (n_rot + dt * 60) % 361
+    n_rot[0] = (n_rot[0] + dt * np.random.uniform(20,60)) % 360
+    n_rot[1] = (n_rot[1] + dt * np.random.uniform(20,60)) % 360
+    n_rot[2] = (n_rot[2] + dt * np.random.uniform(20,60)) % 360
+
+def rotate13(dt):
+    global n_rot
+    n_rot[1] = (n_rot[1] + dt * np.random.uniform(20,60)) % 360
 
 def hexagonalPrism():
     glEnable(GL_NORMALIZE)
     glEnable(GL_CULL_FACE)
     glCullFace(GL_BACK)
     glFrontFace(GL_CCW)
+    #Рисование боковых граней
     glBegin(GL_QUADS)
     for i1 in range(6):
         i2 = (i1 + 1) % 6
@@ -106,7 +177,7 @@ def hexagonalPrism():
     glEnd()
 
 
-
+    #рисование нижней грани
     glColor4f( 1, 1, 1, 1 )
     glCullFace(MODE)
     glFrontFace(GL_CCW)
@@ -115,6 +186,7 @@ def hexagonalPrism():
         glVertex3f(x[i], 0.0, y[i])
     glEnd()
     glFrontFace(GL_CW)
+    # рисование верхней грани
     glBegin(GL_POLYGON)
     for i in range(6):
         glVertex3f(x[i], h, y[i])
@@ -165,5 +237,11 @@ def ShowNormTops():
             glVertex3f(norma[0], norma[1], norma[2])
     glEnd()
 
+def cube_draw():
+    for face in faces:
+        v4 = ()
+        for v in face:
+            v4 += verts[v]
+        graphics.draw(4, GL_QUADS, ('v3f', v4))
 
 app.run()
