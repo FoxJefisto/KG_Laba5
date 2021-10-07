@@ -6,7 +6,7 @@ import numpy as np
 
 w = width = height = 800 # Размер окна вывода
 n_rot = [0] * 3
-is_working = [0]*13
+is_working = [0]*12
 MODE = GL_BACK;
 rot_x = 20 # Углы поворота вокруг осей X, Y и Z
 rot_y = 45
@@ -15,7 +15,7 @@ h = 400
 p = 20
 x = (R, 0.0, -R, -R, 0.0, R)
 y = (R, 1.5 * R, R, -R, -1.5 * R, -R)
-
+k_norm = 50;
 verts = ((p, p, -p), # Координаты вершин куба
          (p, p, -p),
          (-p, p, -p),
@@ -78,7 +78,10 @@ def on_draw():
     glDisable(GL_LIGHTING)
     # Движение первого куба
     glTranslatef(light_position0[0], light_position0[1], light_position0[2])
-    glColor3f(0, 0.5, 0)
+    if (is_working[6] == 0):
+        glColor3f(0, 0.5, 0)
+    else:
+        glColor3f(0.1,0.1,0.1)
     cube_draw()
     # Движение второго куба
     glPopMatrix()
@@ -92,10 +95,17 @@ def on_draw():
     glLightfv(GL_LIGHT0, GL_SPECULAR, lghtClr0)
     glLightfv(GL_LIGHT1, GL_POSITION, light_position1)
     glLightfv(GL_LIGHT1, GL_SPECULAR, lghtClr1)
-    glEnable(GL_LIGHTING)
-    glEnable(GL_LIGHT0)
+    #11. Отключение / включение режима расчета освещенности.
+    if(is_working[9] == 0):
+        glEnable(GL_LIGHTING)
+    else:
+        glDisable(GL_LIGHTING)
+    #8. Отключение / включение неподвижного источника.
+    if(is_working[6] == 0):
+        glEnable(GL_LIGHT0)
+    else:
+        glDisable(GL_LIGHT0)
     glEnable(GL_LIGHT1)
-
     #4 пункт
     glRotatef(n_rot[0], 1, 0, 0)
     glRotatef(n_rot[1], 0, 1, 0)
@@ -114,7 +124,7 @@ def on_draw():
 @window.event
 def on_key_press(ch, modifiers):
     global is_working
-    #1 пункт
+    #1 пункт Отключение / включение вывода оснований.
     if ch == key._1:
         global MODE
         if(not is_working[0]):
@@ -123,7 +133,8 @@ def on_key_press(ch, modifiers):
         else:
             MODE = GL_BACK
             is_working[0] = 0
-    #2,3 пункты
+    #2,3 пункты Использование при выводе боковых граней нормалей к граням и возврат к нормалям к вершинам.
+    # Включение / отключение отображения нормалей.
     elif ch == key._2:
         if(is_working[1] == 0):
             is_working[1] = 1
@@ -131,7 +142,7 @@ def on_key_press(ch, modifiers):
             is_working[1] = 2
         else:
             is_working[1] = 0
-    #4 пункт
+    #4 пункт Произвольное изменение ориентации фигуры.
     elif ch == key._3:
         if(is_working[2] == 0):
             clock.schedule_interval(rotate4, 0.00001)
@@ -139,16 +150,16 @@ def on_key_press(ch, modifiers):
         else:
             clock.unschedule(rotate4)
             is_working[2] = 0
-    #5 пункт
+    #5 пункт Произвольное изменение положения одного источника света.
     elif ch == key._4:
         if (is_working[3] == 0):
             clock.schedule_interval(rotate5, 0.08)
             is_working[3] = 1
         else:
-            clock.unschedule(rotate4)
+            clock.unschedule(rotate5)
             is_working[3] = 0
 
-    #6 пункт
+    #6 пункт Отключение / включение теста глубины.
     elif ch == key._5:
             if (is_working[4] == 0):
                 glEnable(GL_DEPTH_TEST)
@@ -157,84 +168,88 @@ def on_key_press(ch, modifiers):
                 glDisable(GL_DEPTH_TEST)
                 is_working[4] = 0
 
-    #7 пункт
+    #7 пункт Отключение / включение режима отсечение нелицевых сторон.
     elif ch == key._6:
             if (is_working[5] == 0):
-                glEnable(GL_CULL_FACE)
                 is_working[5] = 1
             else:
-                glDisable(GL_CULL_FACE)
                 is_working[5] = 0
-    
-    elif ch == key.W:
-        if(is_working[11] == 0):
-            glMaterialfv(GL_FRONT, GL_DIFFUSE, mtClr)
-            is_working[11] = 1
-        else:
-            is_working[11] = 0
 
+    #8 пункт Отключение / включение неподвижного источника.
+    elif ch == key._7:
+        if (is_working[6] == 0):
+            is_working[6] = 1
+        else:
+            is_working[6] = 0
+    #9 пункт Нормализацию / отказ от нормализации нормалей при их расчете.
+    elif ch == key._8:
+        if (is_working[7] == 0):
+            is_working[7] = 1
+        else:
+            is_working[7] = 0
+
+    #10 пункт Нормализацию / отказ от нормализации нормалей посредством glEnable(GL_NORMALIZE).
+    elif ch == key._9:
+        if (is_working[8] == 0):
+            is_working[8] = 1
+        else:
+            is_working[8] = 0
+
+    #11 пункт Отключение / включение режима расчета освещенности.
+    elif ch == key.Q:
+        if (is_working[9] == 0):
+            is_working[9] = 1
+        else:
+            is_working[9] = 0
+    #12 пункт Отключение / включение компоненты материала GL_DIFFUSE.
+    elif ch == key.W:
+        if(is_working[10] == 0):
+            glMaterialfv(GL_FRONT, GL_DIFFUSE, mtClr)
+            is_working[10] = 1
+        else:
+            is_working[10] = 0
+    #13 пункт Вращение подвижного источника вокруг оси Y под управлением clock.schedule_interval.
     elif ch == key.E:
-        if (not is_working[12]):
+        if (not is_working[11]):
             clock.schedule_interval(rotate13, 0.0000001)
-            is_working[12] = 1
+            is_working[11] = 1
         else :
             clock.unschedule(rotate13)
-            is_working[12] = 0
+            is_working[11] = 0
 
 
 
-
+#4. Произвольное изменение ориентации фигуры.
 def rotate4(dt):
     global n_rot
     n_rot[0] = (n_rot[0] + dt * np.random.uniform(20,60)) % 360
     n_rot[1] = (n_rot[1] + dt * np.random.uniform(20,60)) % 360
     n_rot[2] = (n_rot[2] + dt * np.random.uniform(20,60)) % 360
 
+#5. Произвольное изменение положения одного источника света.
 def rotate5(dt):
     global light_position1
     light_position1[0] = light_position1[0] + (-1)**np.random.randint(0,2)*np.random.uniform(0,20)
     light_position1[1] = light_position1[1] + (-1)**np.random.randint(0,2)*np.random.uniform(0,20)
     light_position1[2] = light_position1[2] + (-1)**np.random.randint(0,2)*np.random.uniform(0,20)
 
+#13. Вращение подвижного источника вокруг оси Y под управлением clock.schedule_interval.
 def rotate13(dt):
     global n_rot
     n_rot[1] = (n_rot[1] + dt * np.random.uniform(20,60)) % 360
-
-# def hexagonalPrism():
-#     glEnable(GL_NORMALIZE)
-#     glEnable(GL_CULL_FACE)
-#     glCullFace(GL_BACK)
-#     glFrontFace(GL_CCW)
-#     #Рисование боковых граней
-#     glBegin(GL_QUADS)
-#     for i1 in range(6):
-#         i2 = (i1 + 1) % 6
-#         glVertex3f(x[i1], 0.0, y[i1])
-#         glVertex3f(x[i1], h, y[i1])
-#         glVertex3f(x[i2], h, y[i2])
-#         glVertex3f(x[i2], 0.0, y[i2])
-#     glEnd()
-#
-#
-#     #рисование нижней грани
-#     glColor4f( 1, 1, 1, 1 )
-#     glCullFace(MODE)
-#     glFrontFace(GL_CCW)
-#     glBegin(GL_POLYGON)
-#     for i in range(6):
-#         glVertex3f(x[i], 0.0, y[i])
-#     glEnd()
-#     glFrontFace(GL_CW)
-#     # рисование верхней грани
-#     glBegin(GL_POLYGON)
-#     for i in range(6):
-#         glVertex3f(x[i], h, y[i])
-#     glEnd()
-
+#Вычисление нормы для вывода на экран
+def NormForShow(a,b):
+    n = np.cross(a, b)  # Векторное произведение
+    n = n / np.linalg.norm(n) * k_norm
+    return n
+#Вычисление нормы
 def Norm(a,b):
     n = np.cross(a, b) # Векторное произведение
+    #Нормализацию / отказ от нормализации нормалей при их расчете.
+    if is_working[7] == 0:
+        n = n / np.linalg.norm(n)
     return n
-
+#Вывод на экран нормалей для граней
 def ShowNormFringe():
     glDisable(GL_LIGHTING)
     glColor3f(1, 1, 1)
@@ -246,15 +261,15 @@ def ShowNormFringe():
         D = np.array([x[i2], 0.0, y[i2]])
         AB = B - A
         AD = D - A
-        norma = Norm(AB, AD)
+        norma = NormForShow(AB, AD)
         glVertex3f((A[0] + D[0])/2, h/2, (A[2]+D[2])/2)
-        glVertex3f(norma[0], norma[1], norma[2])
+        glVertex3f((A[0] + D[0])/2 + norma[0],h/2 + norma[1], (A[2]+D[2])/2 + norma[2])
     glVertex3f(0, h,0)
-    glVertex3f(0, 1.5*h,0)
+    glVertex3f(0, h + k_norm,0)
     glVertex3f(0, 0, 0)
-    glVertex3f(0, -1.01*h, 0)
+    glVertex3f(0, (-1)*k_norm, 0)
     glEnd()
-
+#Вывод на экран нормалей для вершин
 def ShowNormTops():
     glLineWidth(1)
     glDisable(GL_LIGHTING)
@@ -270,20 +285,24 @@ def ShowNormTops():
         for j in range(4):
             XY = points[j-1] - points[j]
             XZ = points[(j+1)%4] - points[j]
-            norma = Norm(XZ, XY)
+            norma = NormForShow(XZ, XY)
             glVertex3f(points[j][0], points[j][1], points[j][2])
-            glVertex3f(norma[0], norma[1], norma[2])
+            glVertex3f(points[j][0] + norma[0],points[j][1] + norma[1],points[j][2] + norma[2])
     for i in range(6):
         #нижняя грань
         glVertex3f(x[i], 0, y[i])
-        glVertex3f(x[i], -h, y[i])
+        glVertex3f(x[i], (-1)*k_norm, y[i])
         #верхняя грань
         glVertex3f(x[i], h, y[i])
-        glVertex3f(x[i], 2*h, y[i])
+        glVertex3f(x[i], h + k_norm, y[i])
     glEnd()
 
 def hexagonalPrismNormalize():
-    glEnable(GL_NORMALIZE)
+    #10. Нормализацию / отказ от нормализации нормалей посредством glEnable(GL_NORMALIZE).
+    if(is_working[8] == 0):
+        glEnable(GL_NORMALIZE)
+    else:
+        glDisable(GL_NORMALIZE)
     glEnable(GL_CULL_FACE)
     glCullFace(GL_BACK)
     glFrontFace(GL_CCW)
