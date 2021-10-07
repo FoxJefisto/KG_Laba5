@@ -65,7 +65,7 @@ glEnable(GL_NORMALIZE)
 @window.event
 def on_draw():
     window.clear()
-    #Настраиваем матрицу проецирования
+    #Настраиваем матрицы
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
     glOrtho(-w, w, -w, w, -w, w)
@@ -114,13 +114,6 @@ def on_draw():
 @window.event
 def on_key_press(ch, modifiers):
     global is_working
-    if ch == key.E:
-        if (not is_working[12]):
-            clock.schedule_interval(rotate13, 0.0000001)
-            is_working[12] = 1
-        else :
-            clock.unschedule(rotate13)
-            is_working[12] = 0
     #1 пункт
     if ch == key._1:
         global MODE
@@ -131,7 +124,7 @@ def on_key_press(ch, modifiers):
             MODE = GL_BACK
             is_working[0] = 0
     #2,3 пункты
-    if ch == key._2:
+    elif ch == key._2:
         if(is_working[1] == 0):
             is_working[1] = 1
         elif (is_working[1] == 1):
@@ -139,7 +132,7 @@ def on_key_press(ch, modifiers):
         else:
             is_working[1] = 0
     #4 пункт
-    if ch == key._3:
+    elif ch == key._3:
         if(is_working[2] == 0):
             clock.schedule_interval(rotate4, 0.00001)
             is_working[2] = 1
@@ -147,13 +140,31 @@ def on_key_press(ch, modifiers):
             clock.unschedule(rotate4)
             is_working[2] = 0
     #5 пункт
-    if ch == key._4:
+    elif ch == key._4:
         if (is_working[3] == 0):
             clock.schedule_interval(rotate5, 0.08)
             is_working[3] = 1
         else:
             clock.unschedule(rotate4)
             is_working[3] = 0
+
+    #6 пункт
+    elif ch == key._5:
+            if (is_working[4] == 0):
+                glEnable(GL_DEPTH_TEST)
+                is_working[4] = 1
+            else:
+                glDisable(GL_DEPTH_TEST)
+                is_working[4] = 0
+
+    #7 пункт
+    elif ch == key._6:
+            if (is_working[5] == 0):
+                glEnable(GL_CULL_FACE)
+                is_working[5] = 1
+            else:
+                glDisable(GL_CULL_FACE)
+                is_working[5] = 0
     
     elif ch == key.W:
         if(is_working[11] == 0):
@@ -161,6 +172,14 @@ def on_key_press(ch, modifiers):
             is_working[11] = 1
         else:
             is_working[11] = 0
+
+    elif ch == key.E:
+        if (not is_working[12]):
+            clock.schedule_interval(rotate13, 0.0000001)
+            is_working[12] = 1
+        else :
+            clock.unschedule(rotate13)
+            is_working[12] = 0
 
 
 
@@ -268,6 +287,8 @@ def hexagonalPrismNormalize():
     glEnable(GL_CULL_FACE)
     glCullFace(GL_BACK)
     glFrontFace(GL_CCW)
+    if is_working[5]:
+        glFrontFace(GL_CW)
     #Рисование боковых граней
     glBegin(GL_QUADS)
     for i1 in range(6):
@@ -290,12 +311,16 @@ def hexagonalPrismNormalize():
     glColor4f( 1, 1, 1, 1 )
     glCullFace(MODE)
     glFrontFace(GL_CCW)
+    if is_working[5]:
+        glFrontFace(GL_CW)
     glBegin(GL_POLYGON)
     for i in range(6):
         glNormal3f(0, -h, 0)
         glVertex3f(x[i], 0.0, y[i])
     glEnd()
     glFrontFace(GL_CW)
+    if is_working[5]:
+        glFrontFace(GL_CCW)
     # рисование верхней грани
     glBegin(GL_POLYGON)
     for i in range(6):
