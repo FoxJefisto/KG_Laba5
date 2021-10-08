@@ -6,6 +6,7 @@ import numpy as np
 
 w = width = height = 800 # Размер окна вывода
 n_rot = [0] * 3
+n_rot_light = 0
 is_working = [0]*12
 MODE = GL_BACK;
 rot_x = 20 # Углы поворота вокруг осей X, Y и Z
@@ -85,16 +86,17 @@ def on_draw():
     cube_draw()
     # Движение второго куба
     glPopMatrix()
+    glRotatef(n_rot_light, 0, 1, 0)
     glTranslatef(light_position1[0], light_position1[1], light_position1[2])
     glColor3f(0.75, 0, 0)
     cube_draw()
+    glLightfv(GL_LIGHT1, GL_POSITION, light_position1)
+    glLightfv(GL_LIGHT1, GL_SPECULAR, lghtClr1)
     glPopMatrix()
 
     glMaterialfv(GL_FRONT, GL_SPECULAR, mtClr)
     glLightfv(GL_LIGHT0, GL_POSITION, light_position0)
     glLightfv(GL_LIGHT0, GL_SPECULAR, lghtClr0)
-    glLightfv(GL_LIGHT1, GL_POSITION, light_position1)
-    glLightfv(GL_LIGHT1, GL_SPECULAR, lghtClr1)
     #11. Отключение / включение режима расчета освещенности.
     if(is_working[9] == 0):
         glEnable(GL_LIGHTING)
@@ -235,8 +237,8 @@ def rotate5(dt):
 
 #13. Вращение подвижного источника вокруг оси Y под управлением clock.schedule_interval.
 def rotate13(dt):
-    global n_rot
-    n_rot[1] = (n_rot[1] + dt * np.random.uniform(20,60)) % 360
+    global n_rot_light
+    n_rot_light = (n_rot_light + dt * np.random.uniform(20,60)) % 360
 #Вычисление нормы для вывода на экран
 def NormForShow(a,b):
     n = np.cross(a, b)  # Векторное произведение
